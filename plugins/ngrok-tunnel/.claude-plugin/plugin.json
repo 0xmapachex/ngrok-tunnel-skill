@@ -1,0 +1,12 @@
+{
+  "name": "ngrok-tunnel",
+  "description": "Expose a local port on ngrok's free static domain. Stable URL across restarts for webhook testing, mobile preview, and localhost sharing.",
+  "version": "1.0.0",
+  "author": {
+    "name": "0xmapachex"
+  },
+  "homepage": "https://github.com/0xmapachex/ngrok-tunnel-skill",
+  "repository": "https://github.com/0xmapachex/ngrok-tunnel-skill",
+  "license": "MIT",
+  "keywords": ["ngrok", "tunnel", "webhooks", "localhost", "static-domain", "mobile-preview"]
+}

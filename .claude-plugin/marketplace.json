@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "0xmapachex",
+  "description": "Claude Code skills published by 0xmapachex.",
+  "owner": {
+    "name": "0xmapachex",
+    "email": "buildraccoon@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "ngrok-tunnel",
+      "source": "./plugins/ngrok-tunnel",
+      "description": "Expose a local port on ngrok's free static domain. Stable URL across restarts for webhook testing, mobile preview, and localhost sharing.",
+      "version": "1.0.0",
+      "author": {
+        "name": "0xmapachex"
+      },
+      "homepage": "https://github.com/0xmapachex/ngrok-tunnel-skill",
+      "repository": "https://github.com/0xmapachex/ngrok-tunnel-skill",
+      "license": "MIT",
+      "category": "developer-tools",
+      "tags": ["ngrok", "tunnel", "webhooks", "localhost", "static-domain", "mobile-preview", "stripe", "twilio", "oauth"]
+    }
+  ]
+}

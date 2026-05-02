@@ -17,16 +17,24 @@ Same logic applies to webhook providers (Stripe dashboard, Twilio console, OAuth
 
 ## Install
 
-Skills live in `~/.claude/skills/` for Claude Code. From this repo:
+### Recommended: as a Claude Code plugin (one command)
+
+```
+/plugin marketplace add 0xmapachex/ngrok-tunnel-skill
+/plugin install ngrok-tunnel@0xmapachex
+```
+
+The plugin auto-updates when you push new versions to this repo.
+
+### Alternative: standalone skill (no plugin namespacing)
 
 ```bash
-git clone https://github.com/0xmapachex/ngrok-tunnel-skill.git ~/.claude/skills/ngrok-tunnel
+git clone https://github.com/0xmapachex/ngrok-tunnel-skill.git /tmp/ngrok-skill
+cp -r /tmp/ngrok-skill/plugins/ngrok-tunnel/skills/ngrok-tunnel ~/.claude/skills/
 chmod +x ~/.claude/skills/ngrok-tunnel/setup.sh
 ```
 
-For Codex CLI, install into `~/.agents/skills/` instead.
-
-For other agents: drop `SKILL.md` and `setup.sh` wherever your agent loads markdown skills. The `description` frontmatter in `SKILL.md` is the trigger.
+For Codex CLI, install the skill into `~/.agents/skills/` instead. Other markdown-skill loaders: drop `SKILL.md` + `setup.sh` wherever they look. The `description` frontmatter in `SKILL.md` is the trigger.
 
 ## Use
 
@@ -49,11 +57,23 @@ The free ngrok plan gives you:
 
 For most local-dev / mobile-preview / webhook-test use cases, this is plenty.
 
-## Files
+## Repo layout
 
-- `SKILL.md` — the skill itself (description, workflow, common issues)
-- `setup.sh` — idempotent first-run installer + interactive auth/domain capture
-- `LICENSE` — MIT
+```
+.
+├── .claude-plugin/
+│   └── marketplace.json                       # marketplace catalog
+├── plugins/
+│   └── ngrok-tunnel/
+│       ├── .claude-plugin/
+│       │   └── plugin.json                    # plugin manifest
+│       └── skills/
+│           └── ngrok-tunnel/
+│               ├── SKILL.md                   # the skill (description + workflow)
+│               └── setup.sh                   # idempotent first-run installer
+├── README.md
+└── LICENSE
+```
 
 ## Contributing
 
