@@ -50,6 +50,80 @@ Expose a local port on the user's free ngrok static domain. The URL is stable ac
    ```
 4. **Tell the user the URL.** Always `https://<cached-domain>` — same every time.
 
+## Multi-service apps (auth callbacks, OAuth, dependent services)
+
+When the user is exposing an app that has **dependent services** the phone
+also needs to reach — most often an OAuth provider (Google emulator, Auth0,
+Clerk dev mode, your own auth API), Stripe webhook receiver, or a separate
+backend on its own port — one tunnel isn't enough. The free ngrok account
+allows **3 concurrent endpoints**; only one of them can use the reserved
+static domain, the other two get random `*.ngrok-free.app` subdomains.
+
+Pattern: tunnel each service separately, then point the primary app at the
+other tunnels via env overrides.
+
+```bash
+# Reserved tunnel for the user-facing app (stable URL, the one they bookmark)
+ngrok http --url="https://$(cat ~/.config/ngrok-tunnel-skill/domain)" 47372 &
+
+# Random tunnel for the dependent service (URL changes each restart, but the
+# primary app reads it from env so that's OK)
+ngrok http 47374 &
+```
+
+Get the random tunnel's URL programmatically from the ngrok agent's
+inspector API (each agent process binds 4040/4041/4042 in order):
+
+```bash
+curl -s http://127.0.0.1:4041/api/tunnels \
+  | python3 -c "import json,sys; print(json.load(sys.stdin)['tunnels'][0]['public_url'])"
+```
+
+Then restart the primary app with the dependent service's public URL plumbed
+through the right env. For NextAuth + a local OAuth emulator that's:
+
+```bash
+AUTH_URL=https://<reserved-domain>.ngrok-free.app \
+AUTH_TRUST_HOST=true \
+GOOGLE_EMULATOR_URL=https://<random>.ngrok-free.app \
+npm run dev
+```
+
+`AUTH_TRUST_HOST=true` is what tells NextAuth (and most modern auth
+libraries) to honor the `X-Forwarded-Host` header ngrok sends, instead of
+defaulting back to `localhost`.
+
+**OAuth `redirect_uri` whitelist.** OAuth providers reject callback URLs
+that aren't in their allow-list. The local emulator's config file (often
+under `.dev/` or similar) needs the ngrok callback added:
+
+```yaml
+oauth_clients:
+  - redirect_uris:
+      - http://localhost:47372/api/auth/callback/google
+      - https://<reserved-domain>.ngrok-free.app/api/auth/callback/google
+```
+
+For real providers (Google, GitHub, etc.) add the ngrok callback in their
+dashboard. Real Google rejects free-tier ngrok subdomains for non-test
+client IDs — use a separate test OAuth client when tunneling.
+
+## Listing reserved domains via the dashboard API
+
+If the user has multiple ngrok accounts, lost track of their reserved
+domain, or wants to script tunnel orchestration, the dashboard API (separate
+from the agent authtoken) lists everything:
+
+```bash
+curl -s https://api.ngrok.com/reserved_domains \
+  -H "Authorization: Bearer $NGROK_API_KEY" \
+  -H "Ngrok-Version: 2" \
+  | python3 -c "import json,sys; [print(r['domain']) for r in json.load(sys.stdin)['reserved_domains']]"
+```
+
+The API key is generated at `dashboard.ngrok.com/api-keys` and is **not**
+the same as the agent authtoken from `dashboard.ngrok.com/get-started/your-authtoken`.
+
 ## Setup details (what the script does)
 
 The script can't fully automate ngrok signup — that requires CAPTCHA + email verification — but it walks the user through the minimum browser steps:
@@ -75,3 +149,8 @@ The script can't fully automate ngrok signup — that requires CAPTCHA + email v
 | `command not found: ngrok` | Setup hasn't run. `bash <skill-dir>/setup.sh`. |
 | `ERR_NGROK_105` "auth failed" | Token wrong/expired. Re-run setup or `ngrok config add-authtoken <NEW_TOKEN>`. |
 | Tunnel comes up but page shows ngrok interstitial | Expected on free plan for browser visits. Click "Visit Site" once. Webhook providers are unaffected. |
+| Skip the interstitial in scripts/headless tests | Send the header `ngrok-skip-browser-warning: 1` (any value works). |
+| Tapping buttons does nothing on the ngrok URL (Next.js dev) | Next 16+ blocks cross-origin requests to `/_next/*` from non-localhost hosts, which silently breaks React hydration → onClick never wires up. Add the ngrok host to `experimental.allowedDevOrigins` in `next.config.ts` and restart the dev server. |
+| OAuth flow lands on `chrome-error://chromewebdata/` after sign-in | The provider redirected to `localhost:<port>` because the auth library doesn't know its public URL. Set the canonical URL env (NextAuth: `AUTH_URL` + `AUTH_TRUST_HOST=true`; other libs vary) and bounce the app. |
+| OAuth provider returns `redirect_uri_mismatch` | The ngrok callback URL isn't whitelisted. Add `https://<your-domain>/api/auth/callback/<provider>` to the OAuth client's allowed redirect_uris (provider dashboard for real Google/GitHub/etc., the local emulator's config file for dev emulators). |
+| Mobile Safari auto-zooms when tapping form inputs | Not a tunnel issue but surfaces when testing mobile via tunnel: iOS zooms when an input's font-size is below 16px. Fix in app CSS: `input, select, textarea { font-size: max(16px, 1em) !important; }` under a mobile media query. |
