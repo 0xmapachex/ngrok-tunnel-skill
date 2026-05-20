@@ -1,0 +1,35 @@
+{
+  "name": "mapache-skills",
+  "version": "1.1.0",
+  "description": "Claude and Codex compatible skills for local tunneling and PR database-change reviews.",
+  "author": {
+    "name": "0xmapachex"
+  },
+  "homepage": "https://github.com/0xmapachex/ngrok-tunnel-skill",
+  "repository": "https://github.com/0xmapachex/ngrok-tunnel-skill",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "claude",
+    "codex",
+    "ngrok",
+    "tunnel",
+    "webhooks",
+    "database-review",
+    "pr-review"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Mapache Skills",
+    "developerName": "0xmapachex",
+    "shortDescription": "Ngrok tunnels and PR DB review skills",
+    "longDescription": "Skill collection for exposing local dev servers with ngrok and creating PR database-change review overviews.",
+    "category": "Engineering",
+    "capabilities": ["Read", "Write"],
+    "brandColor": "#0EA5E9",
+    "defaultPrompt": [
+      "Use the relevant Mapache skill for this task."
+    ],
+    "screenshots": []
+  }
+}

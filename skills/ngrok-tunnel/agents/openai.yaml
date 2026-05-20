@@ -1,0 +1,4 @@
+interface:
+  display_name: "ngrok Tunnel"
+  short_description: "Expose localhost with a stable ngrok URL"
+  default_prompt: "Use $ngrok-tunnel to expose localhost through my stable ngrok domain."

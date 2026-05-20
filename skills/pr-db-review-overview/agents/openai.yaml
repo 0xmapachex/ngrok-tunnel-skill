@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR DB Overview"
+  short_description: "Review PRs with database change maps"
+  default_prompt: "Use $pr-db-review-overview to review this PR and create a database-change overview when schema or migration changes are present."
